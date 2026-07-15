@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscritos Hábiles - Supervisión de Test y Control</title>
+    <!-- Tailwind CSS CDN for modern and beautiful layout styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS CDN for client-side Excel generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Lucide Icons for beautiful modern look -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+        }
+
+        /* Glassmorphism styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.08);
+        }
+
+        /* Gradient styling */
+        .tech-gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tech-gradient-btn {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .tech-gradient-btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="py-10 px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-7xl mx-auto space-y-8">
+        
+        <!-- HEADER ENCABEZADO -->
+        <header class="text-center space-y-2 mb-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold tracking-wider uppercase mb-2 border border-blue-100">
+                <i data-lucide="shield-check" class="w-4 h-4"></i> Portal de Control de Admisiones
+            </div>
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight tech-gradient-text">
+                Inscritos hábiles
+            </h1>
+            <p class="text-gray-500 font-medium text-sm sm:text-base tracking-wide uppercase">
+                SUPERVISIÓN DE TEST Y CONTROL
+            </p>
+        </header>
+
+        <!-- SECCIÓN DE CARGA DE ARCHIVOS -->
+        <section class="glass-card p-6 sm:p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                    <i data-lucide="file-up" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Carga de Datos (Formato CSV)</h2>
+                    <p class="text-xs text-gray-500">Configure los archivos CSV origen (Codificación UTF-8, delimitador coma)</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Archivo 1 - MEDICINA -->
+                <div class="p-5 rounded-xl bg-gray-50/50 border border-gray-100 flex flex-col justify-between space-y-4">
+                    <div>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-100">CARRERA 1</span>
+                        <h3 class="text-base font-bold text-gray-800 mt-2">MEDICINA</h3>
+                        <p class="text-xs text-gray-500 mt-1">Cargue el archivo de postulantes inscritos a Medicina.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-2">Seleccionar archivo:</label>
+                        <input type="file" id="input-medicina" accept=".csv" class="hidden" onchange="handleFileSelect('medicina', this)">
+                        <button onclick="document.getElementById('input-medicina').click()" class="w-full flex items-center justify-center gap-2 py-2 px-4 border border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-indigo-400 transition-colors">
+                            <i data-lucide="upload" class="w-4 h-4 text-gray-400"></i>
+                            <span id="label-medicina">Cargar archivo</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Archivo 2 - CIENCIAS DE LA SALUD -->
+                <div class="p-5 rounded-xl bg-gray-50/50 border border-gray-100 flex flex-col justify-between space-y-4">
+                    <div>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-100">CARRERA 2</span>
+                        <h3 class="text-base font-bold text-gray-800 mt-2">CIENCIAS DE LA SALUD</h3>
+                        <p class="text-xs text-gray-500 mt-1">Cargue el archivo de postulantes inscritos a Ciencias de la Salud.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-2">Seleccionar archivo:</label>
+                        <input type="file" id="input-salud" accept=".csv" class="hidden" onchange="handleFileSelect('salud', this)">
+                        <button onclick="document.getElementById('input-salud').click()" class="w-full flex items-center justify-center gap-2 py-2 px-4 border border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-indigo-400 transition-colors">
+                            <i data-lucide="upload" class="w-4 h-4 text-gray-400"></i>
+                            <span id="label-salud">Cargar archivo</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- PRIMER MÓDULO: HABILES MEDICINA -->
+        <section id="modulo-medicina" class="glass-card p-6 sm:p-8 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-red-50 text-red-600 rounded-lg">
+                        <i data-lucide="activity" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">HABILES MEDICINA</h2>
+                        <p class="text-xs text-gray-500">Registros procesados del archivo de Medicina</p>
+                    </div>
+                </div>
+                <div class="px-4 py-1.5 bg-red-50 text-red-700 font-bold text-sm rounded-full border border-red-100 self-start sm:self-center">
+                    Registros: <span id="count-medicina">0</span>
+                </div>
+            </div>
+
+            <!-- Tabla de Datos -->
+            <div class="overflow-x-auto border border-gray-100 rounded-xl bg-white/50 mb-6 max-h-[400px]">
+                <table class="w-full text-left border-collapse table-auto" id="table-medicina-data">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600 uppercase text-[10px] font-bold tracking-wider sticky top-0 border-b border-gray-100 z-10">
+                            <th class="py-2.5 px-4">NOMBRE</th>
+                            <th class="py-2.5 px-4">APELLIDO</th>
+                            <th class="py-2.5 px-4">ID</th>
+                            <th class="py-2.5 px-4">MAIL</th>
+                            <th class="py-2.5 px-4">PERIODO</th>
+                            <th class="py-2.5 px-4">CARRERA</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-[11px] text-gray-700 divide-y divide-gray-100" id="body-medicina">
+                        <!-- Carga dinámica de registros -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex flex-wrap gap-3 justify-end">
+                <button onclick="copyToClipboard('table-medicina-data')" class="flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-colors">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Copiar Tabla para Outlook/Word
+                </button>
+                <button onclick="downloadExcel('medicina')" class="tech-gradient-btn flex items-center gap-2 py-2 px-4 rounded-lg text-white text-xs font-semibold shadow-sm">
+                    <i data-lucide="download" class="w-4 h-4"></i> Descargar archivo (habiles medicina)
+                </button>
+            </div>
+        </section>
+
+
+        <!-- SEGUNDO MÓDULO: HÁBILES CIENCIAS DE LA SALUD -->
+        <section id="modulo-salud" class="glass-card p-6 sm:p-8 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-teal-50 text-teal-600 rounded-lg">
+                        <i data-lucide="heart-pulse" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">HÁBILES CIENCIAS DE LA SALUD</h2>
+                        <p class="text-xs text-gray-500">Registros procesados del archivo de Ciencias de la Salud</p>
+                    </div>
+                </div>
+                <div class="px-4 py-1.5 bg-teal-50 text-teal-700 font-bold text-sm rounded-full border border-teal-100 self-start sm:self-center">
+                    Registros: <span id="count-salud">0</span>
+                </div>
+            </div>
+
+            <!-- Tabla de Datos -->
+            <div class="overflow-x-auto border border-gray-100 rounded-xl bg-white/50 mb-6 max-h-[400px]">
+                <table class="w-full text-left border-collapse table-auto" id="table-salud-data">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600 uppercase text-[10px] font-bold tracking-wider sticky top-0 border-b border-gray-100 z-10">
+                            <th class="py-2.5 px-4">NOMBRE</th>
+                            <th class="py-2.5 px-4">APELLIDO</th>
+                            <th class="py-2.5 px-4">ID</th>
+                            <th class="py-2.5 px-4">MAIL</th>
+                            <th class="py-2.5 px-4">PERIODO</th>
+                            <th class="py-2.5 px-4">CARRERA</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-[11px] text-gray-700 divide-y divide-gray-100" id="body-salud">
+                        <!-- Carga dinámica de registros -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex flex-wrap gap-3 justify-end">
+                <button onclick="copyToClipboard('table-salud-data')" class="flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-colors">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Copiar Tabla para Outlook/Word
+                </button>
+                <button onclick="downloadExcel('salud')" class="tech-gradient-btn flex items-center gap-2 py-2 px-4 rounded-lg text-white text-xs font-semibold shadow-sm">
+                    <i data-lucide="download" class="w-4 h-4"></i> Descargar archivo (habiles CCSS)
+                </button>
+            </div>
+        </section>
+
+
+        <!-- TERCER MÓDULO: CONSOLIDADO -->
+        <section id="modulo-consolidado" class="glass-card p-6 sm:p-8 hidden">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                        <i data-lucide="layers" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">CONSOLIDADO GENERAL</h2>
+                        <p class="text-xs text-gray-500">Unión y filtrado de Medicina y Ciencias de la Salud</p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Caja de Búsqueda -->
+                    <div class="relative min-w-[260px]">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+                        </span>
+                        <input type="text" id="search-input" oninput="handleSearch()" placeholder="Buscar por ID o Apellido..." class="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                    </div>
+                    <div class="px-4 py-1.5 bg-indigo-50 text-indigo-700 font-bold text-sm rounded-full border border-indigo-100">
+                        Registros Totales: <span id="count-consolidado">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Datos Consolidados -->
+            <div class="overflow-x-auto border border-gray-100 rounded-xl bg-white/50 mb-6 max-h-[400px]">
+                <table class="w-full text-left border-collapse table-auto" id="table-consolidado-data">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600 uppercase text-[10px] font-bold tracking-wider sticky top-0 border-b border-gray-100 z-10">
+                            <th class="py-2.5 px-4">NOMBRE</th>
+                            <th class="py-2.5 px-4">APELLIDO</th>
+                            <th class="py-2.5 px-4">ID</th>
+                            <th class="py-2.5 px-4">MAIL</th>
+                            <th class="py-2.5 px-4">PERIODO</th>
+                            <th class="py-2.5 px-4">CARRERA</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-[11px] text-gray-700 divide-y divide-gray-100" id="body-consolidado">
+                        <!-- Carga dinámica de registros -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex flex-wrap gap-3 justify-end">
+                <button onclick="copyToClipboard('table-consolidado-data')" class="flex items-center gap-2 py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-colors">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Copiar Tabla para Outlook/Word
+                </button>
+                <button onclick="downloadExcel('consolidado')" class="tech-gradient-btn flex items-center gap-2 py-2 px-4 rounded-lg text-white text-xs font-semibold shadow-sm">
+                    <i data-lucide="download" class="w-4 h-4"></i> Descargar archivo (habiles General)
+                </button>
+            </div>
+        </section>
+
+        <!-- PIE DE PÁGINA -->
+        <footer class="text-center pt-8 border-t border-gray-200/50 space-y-1">
+            <p class="text-xs font-bold text-gray-700">Ing Vinicio Betancourt</p>
+            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Supervisión de Test - Admisiones</p>
+            <p class="text-[10px] font-medium text-gray-400">BETVIN CORP 2026 • 0999949499</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Data Storage
+        let dataMedicina = [];
+        let dataSalud = [];
+        let dataConsolidado = [];
+
+        // Parsing options
+        const requiredHeaders = [
+            'Contact.FirstName', 'Contact.LastName', 'Contact.Identificacion__c', 
+            'Contact.Email', 'Opportunity.Program_Plan_id__r.Periodo_Academico__r.Codigo_banner__c', 
+            'Opportunity.Program_Plan_id__r.Codigo_Major__c'
+        ];
+
+        // Parse CSV Text to Array of Objects
+        function parseCSV(text) {
+            let lines = [];
+            let row = [""];
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                let nextChar = text[i+1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        row[row.length - 1] += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    row.push('');
+                } else if ((char === '\r' || char === '\n') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') {
+                        i++;
+                    }
+                    lines.push(row);
+                    row = [''];
+                } else {
+                    row[row.length - 1] += char;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') {
+                lines.push(row);
+            }
+
+            if (lines.length === 0) return [];
+            
+            const headers = lines[0].map(h => h.trim());
+            const results = [];
+
+            for (let j = 1; j < lines.length; j++) {
+                const values = lines[j];
+                if (values.length < headers.length) continue;
+                const entry = {};
+                headers.forEach((h, idx) => {
+                    entry[h] = values[idx] ? values[idx].trim() : '';
+                });
+                results.push(entry);
+            }
+            return results;
+        }
+
+        // Handle File Selection and Parsing
+        function handleFileSelect(type, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            document.getElementById(`label-${type}`).innerText = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const parsedData = parseCSV(text);
+
+                // Sort by the major code: Opportunity.Program_Plan_id__r.Codigo_Major__c
+                const sorted = parsedData.sort((a, b) => {
+                    const codeA = a['Opportunity.Program_Plan_id__r.Codigo_Major__c'] || '';
+                    const codeB = b['Opportunity.Program_Plan_id__r.Codigo_Major__c'] || '';
+                    return codeA.localeCompare(codeB, undefined, {numeric: true, sensitivity: 'base'});
+                });
+
+                if (type === 'medicina') {
+                    dataMedicina = sorted;
+                    renderTable('medicina', dataMedicina);
+                    document.getElementById('modulo-medicina').classList.remove('hidden');
+                } else {
+                    dataSalud = sorted;
+                    renderTable('salud', dataSalud);
+                    document.getElementById('modulo-salud').classList.remove('hidden');
+                }
+
+                updateConsolidado();
+            };
+            reader.readAsText(file, "UTF-8");
+        }
+
+        // Render Tables dynamically
+        function renderTable(type, data) {
+            const tbody = document.getElementById(`body-${type}`);
+            tbody.innerHTML = '';
+            document.getElementById(`count-${type}`).innerText = data.length;
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50/80 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-2 px-4 font-semibold text-gray-900">${item['Contact.FirstName'] || '-'}</td>
+                    <td class="py-2 px-4 font-semibold text-gray-900">${item['Contact.LastName'] || '-'}</td>
+                    <td class="py-2 px-4 text-gray-600">${item['Contact.Identificacion__c'] || '-'}</td>
+                    <td class="py-2 px-4 text-gray-600">${item['Contact.Email'] || '-'}</td>
+                    <td class="py-2 px-4 text-gray-500">${item['Opportunity.Program_Plan_id__r.Periodo_Academico__r.Codigo_banner__c'] || '-'}</td>
+                    <td class="py-2 px-4 font-mono text-indigo-600 font-bold">${item['Opportunity.Program_Plan_id__r.Codigo_Major__c'] || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Consolidate both data inputs
+        function updateConsolidado() {
+            // Join lists together
+            dataConsolidado = [...dataMedicina, ...dataSalud];
+            renderTable('consolidado', dataConsolidado);
+            if (dataConsolidado.length > 0) {
+                document.getElementById('modulo-consolidado').classList.remove('hidden');
+            } else {
+                document.getElementById('modulo-consolidado').classList.add('hidden');
+            }
+        }
+
+        // Filter / Search engine
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            if (!query) {
+                renderTable('consolidado', dataConsolidado);
+                return;
+            }
+
+            const filtered = dataConsolidado.filter(item => {
+                const idVal = (item['Contact.Identificacion__c'] || '').toLowerCase();
+                const lastVal = (item['Contact.LastName'] || '').toLowerCase();
+                return idVal.includes(query) || lastVal.includes(query);
+            });
+
+            renderTable('consolidado', filtered);
+        }
+
+        // Copy beautiful visual HTML tables into Outlook/Word retaining borders, styling, and text formatting
+        function copyToClipboard(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            // Clone table to safely modify without destroying UI
+            const clone = table.cloneNode(true);
+            
+            // Inline essential styles into table elements for optimal copy performance into MS Outlook/Word
+            clone.setAttribute('style', 'border-collapse: collapse; width: 100%; font-family: Calibri, sans-serif; font-size: 10.5pt; color: #333333;');
+            
+            const headers = clone.querySelectorAll('th');
+            headers.forEach(th => {
+                th.setAttribute('style', 'background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 8px 12px; font-weight: bold; text-align: left; font-size: 10pt; color: #475569;');
+            });
+
+            const cells = clone.querySelectorAll('td');
+            cells.forEach(td => {
+                td.setAttribute('style', 'border: 1px solid #e2e8f0; padding: 6px 12px; font-size: 10pt;');
+            });
+
+            const rows = clone.querySelectorAll('tr');
+            rows.forEach((tr, index) => {
+                if(index > 0 && index % 2 === 0) {
+                    tr.style.backgroundColor = '#f8fafc';
+                }
+            });
+
+            // Create temporary container and execute Copy
+            const container = document.createElement('div');
+            container.style.position = 'fixed';
+            container.style.pointerEvents = 'none';
+            container.style.opacity = '0';
+            container.appendChild(clone);
+            document.body.appendChild(container);
+
+            window.getSelection().removeAllRanges();
+            const range = document.createRange();
+            range.selectNode(container);
+            window.getSelection().addRange(range);
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('¡Tabla copiada con formato listo para pegar en Outlook o Word!');
+                } else {
+                    alert('No se pudo copiar la tabla automáticamente.');
+                }
+            } catch (err) {
+                alert('Error al copiar: ' + err);
+            }
+
+            window.getSelection().removeAllRanges();
+            document.body.removeChild(container);
+        }
+
+        // Map internal Salesforce key attributes to simplified business headings requested
+        const headerMapping = {
+            'Contact.FirstName': 'NOMBRE',
+            'Contact.LastName': 'APELLIDO',
+            'Contact.Identificacion__c': 'ID',
+            'Contact.Email': 'MAIL',
+            'Opportunity.Program_Plan_id__r.Periodo_Academico__r.Codigo_banner__c': 'PERIODO',
+            'Opportunity.Program_Plan_id__r.Codigo_Major__c': 'CARRERA'
+        };
+
+        // Export clean formatted data structure directly to native Excel files using SheetJS
+        function downloadExcel(type) {
+            let srcData = [];
+            let fileName = '';
+
+            if (type === 'medicina') {
+                srcData = dataMedicina;
+                fileName = 'hábiles medicina.xlsx';
+            } else if (type === 'salud') {
+                srcData = dataSalud;
+                fileName = 'hábiles CCSS.xlsx';
+            } else if (type === 'consolidado') {
+                // Get current filtered state or complete list
+                const query = document.getElementById('search-input').value.toLowerCase().trim();
+                srcData = query ? dataConsolidado.filter(item => {
+                    const idVal = (item['Contact.Identificacion__c'] || '').toLowerCase();
+                    const lastVal = (item['Contact.LastName'] || '').toLowerCase();
+                    return idVal.includes(query) || lastVal.includes(query);
+                }) : dataConsolidado;
+                
+                fileName = 'habiles General.xlsx';
+            }
+
+            if (srcData.length === 0) {
+                alert('No hay datos disponibles para exportar.');
+                return;
+            }
+
+            // Transform raw JSON keys into correct mapped columns ordered correctly
+            const formattedData = srcData.map(item => {
+                const row = {};
+                Object.keys(headerMapping).forEach(key => {
+                    row[headerMapping[key]] = item[key] || '';
+                });
+                return row;
+            });
+
+            // Build worksheet
+            const ws = XLSX.utils.json_to_sheet(formattedData);
+            
+            // Apply nice styling / column width optimizations
+            const colWidths = [
+                { wch: 20 }, // NOMBRE
+                { wch: 20 }, // APELLIDO
+                { wch: 15 }, // ID
+                { wch: 30 }, // MAIL
+                { wch: 12 }, // PERIODO
+                { wch: 12 }  // CARRERA
+            ];
+            ws['!cols'] = colWidths;
+
+            // Generate workbook structure
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Hábiles");
+
+            // Save binary representation as Excel Spreadsheet
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
+</body>
+</html>
